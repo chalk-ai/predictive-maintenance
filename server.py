@@ -15,6 +15,7 @@ import asyncio
 import os
 import time
 from collections import defaultdict, deque
+from contextlib import asynccontextmanager
 from datetime import timedelta
 
 import numpy as np
@@ -31,6 +32,9 @@ SPECS = {p.id: p for p in DEMO_FLEET}
 PER_CLIENT_PER_MIN = 20
 MAX_CONCURRENT = 4
 RAW_WINDOW_S = 600
+# An idle branch server sleeps, and the first query after that takes ~30 s; one cheap query every
+# few minutes keeps visitor queries at a few seconds.
+KEEPALIVE_S = int(os.environ.get("PM_KEEPALIVE_S", "240"))
 
 OUTPUTS = [
     Pump.as_of,
@@ -61,7 +65,31 @@ client = ChalkClient(
 gate = asyncio.Semaphore(MAX_CONCURRENT)
 recent: dict[str, deque[float]] = defaultdict(deque)
 
-app = FastAPI()
+
+async def keep_branch_warm() -> None:
+    while True:
+        try:
+            await asyncio.to_thread(
+                client.query,
+                input={Pump.id: "P-101"},
+                output=[Pump.failure_risk_12h],
+                now=START + timedelta(hours=HOURS),
+                query_name="predictive-maintenance-keepalive",
+            )
+        except Exception as e:  # noqa: BLE001 - any failure must not end the keepalive loop
+            print(f"keepalive failed: {e}", flush=True)
+        await asyncio.sleep(KEEPALIVE_S)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    task = asyncio.create_task(keep_branch_warm()) if KEEPALIVE_S > 0 else None
+    yield
+    if task is not None:
+        task.cancel()
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https://(chalk\.ai|[a-z0-9-]+\.chalk\.dev|[a-z0-9-]+\.vercel\.app)|http://localhost:\d+",
