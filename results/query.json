@@ -1,0 +1,16 @@
+{
+  "dataset_id": "6b949235-fdcd-40f1-aef4-5aaae8f9c43a",
+  "revision_ids": [
+    "e9cd7c8b-0e3c-472d-92ad-d4173dd1d4e5"
+  ],
+  "branch": "predictive-maintenance",
+  "rows": 768,
+  "step_minutes": 30,
+  "max_abs_diff_vs_reference": {
+    "vib_rms_1h": 9.551699708953976e-12,
+    "vib_per_load_1h": 3.1839003655775855e-11,
+    "vib_trend": 1.8563709597296807e-12,
+    "temp_slope_c_per_h": 1.1795009413617663e-12,
+    "load_frac_1h": 5.3290705182007514e-14
+  }
+}

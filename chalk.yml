@@ -1,0 +1,5 @@
+project: predictive-maintenance
+environments:
+  default:
+    runtime: "python312"
+    requirements: requirements.txt
