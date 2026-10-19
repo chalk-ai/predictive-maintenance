@@ -10,15 +10,12 @@ Every (pump, instant) row is queried with `input_times` set to that instant, so 
 the sensor samples taken before it: exactly what the model would have seen live at that moment.
 The result is checked against fusion_reference.py and written to results/.
 
-    ./record_run.py [--branch predictive-maintenance]
+    ./record_run.py
 """
 
 from __future__ import annotations
 
-import argparse
 import json
-import os
-import subprocess
 from datetime import timedelta
 from pathlib import Path
 
@@ -43,25 +40,10 @@ CHECKED = [
 def chalk_client(branch: str):
     from chalk.client import ChalkClient
 
-    if "CHALK_CLIENT_ID" not in os.environ:
-        cfg = json.loads(subprocess.check_output(["chalk", "config", "--json"]))
-        os.environ["CHALK_CLIENT_ID"] = cfg["clientId"]["value"]
-        os.environ["CHALK_CLIENT_SECRET"] = cfg["clientSecret"]["value"]
-        os.environ["CHALK_API_SERVER"] = cfg["apiServer"]["value"]
-        os.environ.setdefault("CHALK_ENVIRONMENT_ID", cfg["environment"]["value"])
-    return ChalkClient(
-        client_id=os.environ["CHALK_CLIENT_ID"],
-        client_secret=os.environ["CHALK_CLIENT_SECRET"],
-        api_server=os.environ["CHALK_API_SERVER"],
-        environment=os.environ["CHALK_ENVIRONMENT_ID"],
-        branch=branch,
-    )
+    return ChalkClient(branch=branch)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--branch", default="predictive-maintenance")
-    args = parser.parse_args()
     from pumps.features import Pump
 
     ticks_min = list(range(STEP_MIN, HOURS * 60 + 1, STEP_MIN))
@@ -89,7 +71,7 @@ def main() -> None:
         Pump.failure_risk_12h,
         Pump.rul_hours,
     ]
-    client = chalk_client(args.branch)
+    client = chalk_client('predictive-maintenance')
     ds = client.offline_query(
         input={Pump.id: pump_ids},
         input_times=times,
@@ -133,7 +115,7 @@ def main() -> None:
     meta = {
         "dataset_id": str(ds.dataset_id) if ds.dataset_id else None,
         "revision_ids": [str(r.revision_id) for r in ds.revisions],
-        "branch": args.branch,
+        "branch": 'predictive-maintenance',
         "rows": len(df),
         "step_minutes": STEP_MIN,
         "max_abs_diff_vs_reference": worst,

@@ -73,7 +73,7 @@ You need [`uv`](https://docs.astral.sh/uv/) and a Chalk environment.
 
 ```bash
 chalk apply --branch predictive-maintenance     # the historian, fused features and model
-./record_run.py                                 # the fleet every 30 minutes for 48 hours
+./record_run.py # the fleet every 30 minutes for 48 hours
 chalk query --branch predictive-maintenance --in pump.id=P-104 \
   --out pump.failure_risk_12h --out pump.vib_per_load_1h --now 2026-10-11T12:00:00Z
 ```
@@ -93,3 +93,14 @@ store it as a Chalk secret, and deploy the API as a ScalingGroup.
 ## License
 
 Apache-2.0.
+
+## Local authentication
+
+The SDK reads credentials, API host, and the selected environment from your existing
+`chalk login` in `~/.chalk.yml`, including project-scoped and default logins.
+For unattended runs, `CHALK_CLIENT_ID` and `CHALK_CLIENT_SECRET` remain supported.
+The examples use the current environment selected by your Chalk login.
+
+Requires `chalkcompute>=2.13.8` with the public connection context and in-memory
+secret APIs from [chalk-sandbox-sdk#511](https://github.com/chalk-ai/chalk-sandbox-sdk/pull/511).
+This PR is waiting for that SDK release.
