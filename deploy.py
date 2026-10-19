@@ -2,7 +2,7 @@
 #
 # /// script
 # requires-python = ">=3.12,<3.14"
-# dependencies = ["chalkcompute==2.13.5"]
+# dependencies = ["chalkcompute>=2.13.8"]
 # ///
 """Deploy the demo's live API (server.py) as a ScalingGroup.
 
@@ -18,25 +18,10 @@ Credentials for the deploy itself come from your existing `chalk login` (or the 
 from __future__ import annotations
 
 import argparse
-import os
 import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-
-
-def configure_chalk() -> None:
-    """Resolve deployment routing settings using the SDK's ambient login."""
-    from chalkcompute import ConnectClient
-
-    client = ConnectClient()
-    try:
-        client._ensure_auth()
-        # Only routing settings are needed by the deployed app; credentials stay in the SDK.
-        os.environ["CHALK_API_SERVER"] = client._api_server
-        os.environ["CHALK_ENVIRONMENT_ID"] = client._env_id
-    finally:
-        client.close()
 
 
 def main() -> None:
@@ -46,8 +31,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    configure_chalk()
-    from chalkcompute import Image, ReadinessProbe, ScalingGroup, Secret
+    from chalkcompute import ConnectClient, Image, ReadinessProbe, ScalingGroup, Secret
+
+    with ConnectClient() as connection:
+        api_server = connection.api_server
+        environment_id = connection.environment_id
 
     image = (
         Image.debian_slim(python_version="3.12")
@@ -72,8 +60,8 @@ def main() -> None:
         cpu="1",
         memory="2Gi",
         env={
-            "PM_CHALK_API_SERVER": os.environ["CHALK_API_SERVER"],
-            "PM_CHALK_ENVIRONMENT_ID": os.environ["CHALK_ENVIRONMENT_ID"],
+            "PM_CHALK_API_SERVER": api_server,
+            "PM_CHALK_ENVIRONMENT_ID": environment_id,
             "PM_CHALK_BRANCH": 'predictive-maintenance',
             "PM_CHALK_CLIENT_ID": args.client_id,
             "PM_CHALK_CLIENT_SECRET": Secret.from_chalk_env('PREDICTIVE_MAINTENANCE_DEMO_CLIENT_SECRET'),
