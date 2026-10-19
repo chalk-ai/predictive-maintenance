@@ -17,8 +17,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import subprocess
 from datetime import timedelta
 from pathlib import Path
 
@@ -43,19 +41,7 @@ CHECKED = [
 def chalk_client(branch: str):
     from chalk.client import ChalkClient
 
-    if "CHALK_CLIENT_ID" not in os.environ:
-        cfg = json.loads(subprocess.check_output(["chalk", "config", "--json"]))
-        os.environ["CHALK_CLIENT_ID"] = cfg["clientId"]["value"]
-        os.environ["CHALK_CLIENT_SECRET"] = cfg["clientSecret"]["value"]
-        os.environ["CHALK_API_SERVER"] = cfg["apiServer"]["value"]
-        os.environ.setdefault("CHALK_ENVIRONMENT_ID", cfg["environment"]["value"])
-    return ChalkClient(
-        client_id=os.environ["CHALK_CLIENT_ID"],
-        client_secret=os.environ["CHALK_CLIENT_SECRET"],
-        api_server=os.environ["CHALK_API_SERVER"],
-        environment=os.environ["CHALK_ENVIRONMENT_ID"],
-        branch=branch,
-    )
+    return ChalkClient(branch=branch)
 
 
 def main() -> None:

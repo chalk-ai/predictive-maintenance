@@ -93,3 +93,10 @@ store it as a Chalk secret, and deploy the API as a ScalingGroup.
 ## License
 
 Apache-2.0.
+
+## Local authentication
+
+The SDK reads credentials, API host, and the selected environment from your existing
+`chalk login` in `~/.chalk.yml`, including project-scoped and default logins.
+For unattended runs, `CHALK_CLIENT_ID` and `CHALK_CLIENT_SECRET` remain supported. Where available, `--env-id`
+overrides the target environment; otherwise the SDK uses your login or environment settings.
