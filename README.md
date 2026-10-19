@@ -73,7 +73,7 @@ You need [`uv`](https://docs.astral.sh/uv/) and a Chalk environment.
 
 ```bash
 chalk apply --branch predictive-maintenance     # the historian, fused features and model
-./record_run.py                                 # the fleet every 30 minutes for 48 hours
+./record_run.py # the fleet every 30 minutes for 48 hours
 chalk query --branch predictive-maintenance --in pump.id=P-104 \
   --out pump.failure_risk_12h --out pump.vib_per_load_1h --now 2026-10-11T12:00:00Z
 ```
@@ -98,5 +98,5 @@ Apache-2.0.
 
 The SDK reads credentials, API host, and the selected environment from your existing
 `chalk login` in `~/.chalk.yml`, including project-scoped and default logins.
-For unattended runs, `CHALK_CLIENT_ID` and `CHALK_CLIENT_SECRET` remain supported. Where available, `--env-id`
-overrides the target environment; otherwise the SDK uses your login or environment settings.
+For unattended runs, `CHALK_CLIENT_ID` and `CHALK_CLIENT_SECRET` remain supported.
+The examples use the current environment selected by your Chalk login.
